@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: gastrohub
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gastrohub_db
+    username: gastrohub_user
+    password: gastrohub_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: 8080

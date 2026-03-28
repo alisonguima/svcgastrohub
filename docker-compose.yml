@@ -1,0 +1,55 @@
+services:
+
+  # ─── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16.8-alpine
+    container_name: gastrohub-postgres
+    environment:
+      POSTGRES_DB: gastrohub_db
+      POSTGRES_USER: gastrohub_user
+      POSTGRES_PASSWORD: gastrohub_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - gastrohub-postgres-data:/var/lib/postgresql/data
+    networks:
+      - gastrohub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gastrohub_user -d gastrohub_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── Application ────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gastrohub-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gastrohub_db
+      SPRING_DATASOURCE_USERNAME: gastrohub_user
+      SPRING_DATASOURCE_PASSWORD: gastrohub_password
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_PROFILES_ACTIVE: local
+    ports:
+      - "8080:8080"
+    networks:
+      - gastrohub-network
+    restart: unless-stopped
+
+# ─── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  gastrohub-postgres-data:
+
+# ─── Networks ─────────────────────────────────────────────────────────────────
+networks:
+  gastrohub-network:
+    driver: bridge
+

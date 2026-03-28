@@ -1,0 +1,18 @@
+# Maven
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Docs
+*.md
+
+# Env (never send secrets to the image)
+.env
+
