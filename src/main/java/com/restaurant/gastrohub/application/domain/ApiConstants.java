@@ -30,9 +30,14 @@ public class ApiConstants {
     public static final String LOGIN_SIZE = "Login must be between 3 and 50 characters";
 
     public static final String PASSWORD_REQUIRED = "Password is required";
+    public static final String CUR_PASSWORD_REQUIRED = "Current password is required";
+    public static final String NEW_PASSWORD_REQUIRED = "New password is required";
     public static final String PASSWORD_INVALID = "Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number and one special character (@$!%*?&)";
+    public static final String INVALID_PASSWORD = "Current password is incorrect";
+    public static final String USER_NOT_FOUND = "User not found with id: ";
 
     public static final String USER_TYPE_REQUIRED = "User type is required";
+    public static final String USER_TYPE_INVALID = "Invalid user type. Valid types are: OWNER, CUSTOMER";
 
     public static final String ADDRESS_REQUIRED = "Address is required";
 

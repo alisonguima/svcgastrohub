@@ -2,8 +2,6 @@ package com.restaurant.gastrohub.application.exception.error;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

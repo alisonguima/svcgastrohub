@@ -1,6 +1,9 @@
 spring:
   application:
     name: gastrohub
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
   datasource:
     url: jdbc:postgresql://localhost:5432/gastrohub_db
     username: gastrohub_user
