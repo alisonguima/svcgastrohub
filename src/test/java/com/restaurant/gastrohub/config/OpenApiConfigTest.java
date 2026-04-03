@@ -13,14 +13,11 @@ class OpenApiConfigTest {
     @Test
     @DisplayName("customOpenAPI should return OpenAPI with correct info")
     void customOpenAPI_shouldReturnOpenAPIWithCorrectInfo() {
-        // Given
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(OpenApiConfig.class);
         OpenApiConfig config = context.getBean(OpenApiConfig.class);
 
-        // When
         OpenAPI openAPI = config.customOpenAPI();
 
-        // Then
         assertThat(openAPI).isNotNull();
         Info info = openAPI.getInfo();
         assertThat(info).isNotNull();

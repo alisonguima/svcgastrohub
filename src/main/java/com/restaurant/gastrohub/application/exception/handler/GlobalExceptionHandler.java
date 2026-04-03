@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
     ERROR_DETAILS_MAP.put("Invalid", new ErrorDetails(ApiConstants.ERROR_TYPE_INVALID_REQUEST, ApiConstants.ERROR_TITLE_INVALID_REQUEST));
   }
 
-  // ...existing code...
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ProblemDetail> handleValidation(
       MethodArgumentNotValidException ex, WebRequest request) {
@@ -59,7 +59,6 @@ public class GlobalExceptionHandler {
         .body(problemDetail);
   }
 
-  // ...existing code...
   @ExceptionHandler(DefaultException.class)
   public ResponseEntity<ProblemDetail> handleConflict(
       DefaultException ex, WebRequest request) {
@@ -81,7 +80,6 @@ public class GlobalExceptionHandler {
         .body(problemDetail);
   }
 
-  // ...existing code...
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ProblemDetail> handleGeneric(
       Exception ex, WebRequest request) {
@@ -99,7 +97,6 @@ public class GlobalExceptionHandler {
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(problemDetail);
   }
-
 
   private ErrorDetails findErrorDetails(String message) {
     return ERROR_DETAILS_MAP.entrySet().stream()

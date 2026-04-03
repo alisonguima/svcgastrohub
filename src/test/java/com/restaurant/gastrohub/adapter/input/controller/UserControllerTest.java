@@ -265,22 +265,18 @@ class UserControllerTest {
   @Test
   @DisplayName("Should handle multiple sequential user operations")
   void testMultipleUserOperations() {
-    // Create
     when(userUseCase.createUser(any(User.class))).thenReturn(createUserResponse);
     ResponseEntity<CreateUserResponse> createResponse = userController.createUser(createUserRequest);
     assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
-    // Get
     when(userUseCase.getUser(1L)).thenReturn(getUserResponse);
     ResponseEntity<GetUserResponse> getResponse = userController.getUser(1L);
     assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-    // Update
     doNothing().when(userUseCase).updateUser(eq(1L), any(User.class));
     ResponseEntity<Void> updateResponse = userController.updateUser(1L, updateUserRequest);
     assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
-    // Delete
     doNothing().when(userUseCase).deleteUser(1L);
     ResponseEntity<Void> deleteResponse = userController.deleteUser(1L);
     assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);

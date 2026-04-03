@@ -25,21 +25,18 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("handleValidation should return 400 with field errors in ProblemDetail")
     void handleValidation_shouldReturn400WithFieldErrorsInProblemDetail() {
-        // Arrange
         BindingResult bindingResult = new BeanPropertyBindingResult(new Object(), "testObject");
         bindingResult.addError(new FieldError("testObject", "email", "Email is invalid"));
         bindingResult.addError(new FieldError("testObject", "login", "Login is required"));
-        bindingResult.addError(new FieldError("testObject", "email", "Email format error")); // Duplicate field to cover merge
+        bindingResult.addError(new FieldError("testObject", "email", "Email format error"));
         MethodArgumentNotValidException ex = new MethodArgumentNotValidException(null, bindingResult);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/gastrohub/api/v1/users");
         ServletWebRequest webRequest = new ServletWebRequest(request);
 
-        // Act
         ResponseEntity<ProblemDetail> response = handler.handleValidation(ex, webRequest);
 
-        // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         ProblemDetail body = response.getBody();
         assertThat(body).isNotNull();
@@ -50,8 +47,8 @@ class GlobalExceptionHandlerTest {
 
         @SuppressWarnings("unchecked")
         Map<String, String> errors = (Map<String, String>) body.getProperties().get("errors");
-        assertThat(errors).hasSize(2); // email and login
-        assertThat(errors).containsEntry("email", "Email is invalid"); // First one wins due to merge
+        assertThat(errors).hasSize(2);
+        assertThat(errors).containsEntry("email", "Email is invalid");
         assertThat(errors).containsEntry("login", "Login is required");
         assertThat(body.getProperties()).containsKey("timestamp");
     }
@@ -59,7 +56,7 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("handleConflict should return 422 with duplicate email error")
     void handleConflict_shouldReturn422WithDuplicateEmailError() {
-        // Arrange
+
         String errorMessage = "Email already in use: test@example.com";
         DefaultException ex = new DefaultException(errorMessage);
 
@@ -67,10 +64,10 @@ class GlobalExceptionHandlerTest {
         request.setRequestURI("/gastrohub/api/v1/users");
         ServletWebRequest webRequest = new ServletWebRequest(request);
 
-        // Act
+
         ResponseEntity<ProblemDetail> response = handler.handleConflict(ex, webRequest);
 
-        // Assert
+
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         ProblemDetail body = response.getBody();
         assertThat(body).isNotNull();
@@ -83,7 +80,6 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("handleConflict should return 404 with not found error")
     void handleConflict_shouldReturn404WithNotFoundError() {
-        // Arrange
         String errorMessage = "User not found with id: 1";
         DefaultException ex = new DefaultException(errorMessage);
 
@@ -91,10 +87,8 @@ class GlobalExceptionHandlerTest {
         request.setRequestURI("/gastrohub/api/v1/users/1");
         ServletWebRequest webRequest = new ServletWebRequest(request);
 
-        // Act
         ResponseEntity<ProblemDetail> response = handler.handleConflict(ex, webRequest);
 
-        // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         ProblemDetail body = response.getBody();
         assertThat(body).isNotNull();
@@ -107,17 +101,14 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("handleGeneric should return 500 with generic message in ProblemDetail")
     void handleGeneric_shouldReturn500WithGenericMessageInProblemDetail() {
-        // Arrange
         Exception ex = new RuntimeException("Some unexpected error");
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/gastrohub/api/v1/users");
         ServletWebRequest webRequest = new ServletWebRequest(request);
 
-        // Act
         ResponseEntity<ProblemDetail> response = handler.handleGeneric(ex, webRequest);
 
-        // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         ProblemDetail body = response.getBody();
         assertThat(body).isNotNull();
@@ -127,5 +118,4 @@ class GlobalExceptionHandlerTest {
         assertThat(body.getProperties()).containsKey("timestamp");
     }
 }
-
 

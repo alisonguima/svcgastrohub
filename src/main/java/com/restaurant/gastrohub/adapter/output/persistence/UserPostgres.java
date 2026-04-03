@@ -52,7 +52,7 @@ public class UserPostgres implements UserPostgresPort {
   }
 
   @Override
-   public List<User> getUserByName(String name) {
+  public List<User> getUserByName(String name) {
     return userRepository.findByNameContainingIgnoreCase(name)
         .stream()
         .map(UserMapper.INSTANCE::userEntityToDomain)

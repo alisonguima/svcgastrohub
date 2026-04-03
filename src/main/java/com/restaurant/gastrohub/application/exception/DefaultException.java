@@ -6,4 +6,3 @@ public class DefaultException extends RuntimeException {
         super(message);
     }
 }
-
