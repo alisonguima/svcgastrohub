@@ -1,7 +1,6 @@
 package com.restaurant.gastrohub.application.port.output;
 
 import com.restaurant.gastrohub.adapter.output.model.UserEntity;
-import com.restaurant.gastrohub.application.domain.enums.UserType;
 import com.restaurant.gastrohub.application.domain.user.User;
 
 import java.util.List;
@@ -13,8 +12,7 @@ public interface UserPostgresPort {
   boolean existsByLogin(String login);
   boolean existsByEmail(String email);
   User getUserById(Long id);
+  List<User> getUserByName(String name);
   void deleteUser(Long id);
-  List<User> getUsersByUserType(UserType userType);
-  List<User> getAllUsers();
 
 }

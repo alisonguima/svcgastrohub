@@ -1,7 +1,10 @@
 package com.restaurant.gastrohub.adapter.input.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.restaurant.gastrohub.application.domain.enums.UserType;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.time.ZonedDateTime;
 
 @Schema(description = "Response payload for user retrieval")
 public record GetUserResponse(
@@ -21,8 +24,9 @@ public record GetUserResponse(
     @Schema(description = "User's type", example = "CUSTOMER")
     UserType userType,
 
-    @Schema(description = "Last update timestamp", example = "2023-10-01T12:00:00Z")
-    String lastUpdateAt,
+    @Schema(description = "Last update timestamp", example = "2026-04-03T20:50:10Z")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssX", timezone = "UTC")
+    ZonedDateTime lastUpdateAt,
 
     @Schema(description = "User's address", example = "123 Main St, City, State")
     String address) {}

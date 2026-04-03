@@ -8,24 +8,23 @@ import com.restaurant.gastrohub.application.domain.enums.UserType;
 import com.restaurant.gastrohub.application.domain.user.User;
 import com.restaurant.gastrohub.application.exception.DefaultException;
 import com.restaurant.gastrohub.application.port.output.UserPostgresPort;
-import com.restaurant.gastrohub.application.util.UserTypeParserUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,9 +45,12 @@ class UserServiceTest {
   private UserEntity userEntity;
   private CreateUserResponse createUserResponse;
   private GetUserResponse getUserResponse;
+  private ZonedDateTime testDateTime;
 
   @BeforeEach
   void setUp() {
+    testDateTime = ZonedDateTime.of(2024, 1, 1, 10, 0, 0, 0, ZoneId.of("UTC"));
+
     user = new User();
     user.setId(1L);
     user.setName("John Doe");
@@ -58,7 +60,7 @@ class UserServiceTest {
     user.setNewPassword("newpassword");
     user.setUserType(UserType.OWNER);
     user.setAddress("123 Main St");
-    user.setLastUpdateAt("2024-01-01 10:00:00");
+    user.setLastUpdateAt(testDateTime);
 
     userEntity = new UserEntity();
     userEntity.setId(1L);
@@ -72,7 +74,7 @@ class UserServiceTest {
     createUserResponse = new CreateUserResponse("1", "John Doe", "john@example.com", "johndoe");
 
     getUserResponse = new GetUserResponse("1", "John Doe", "john@example.com", "johndoe",
-        UserType.OWNER, "2024-01-01 10:00:00", "123 Main St");
+        UserType.OWNER, testDateTime, "123 Main St");
   }
 
   @Test
@@ -255,36 +257,17 @@ class UserServiceTest {
   }
 
   @Test
-  @DisplayName("Should get all users when userType is null")
-  void testGetUsersWithoutType() {
+  @DisplayName("Should get users by name with partial match")
+  void testGetUserByNameSuccess() {
     List<User> users = List.of(user);
 
-    when(userPostgresPort.getAllUsers()).thenReturn(users);
+    when(userPostgresPort.getUserByName("John")).thenReturn(users);
 
-    List<GetUserResponse> result = userService.getUsers(null);
+    List<GetUserResponse> result = userService.getUserByName("John");
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0)).isEqualTo(getUserResponse);
-    verify(userPostgresPort).getAllUsers();
-    verify(userPostgresPort, never()).getUsersByUserType(any());
-  }
-
-  @Test
-  @DisplayName("Should get users by type when userType is provided")
-  void testGetUsersWithType() {
-    List<User> users = List.of(user);
-
-    try (MockedStatic<UserTypeParserUtils> mockedParser = mockStatic(UserTypeParserUtils.class)) {
-      mockedParser.when(() -> UserTypeParserUtils.parse("OWNER")).thenReturn(UserType.OWNER);
-      when(userPostgresPort.getUsersByUserType(UserType.OWNER)).thenReturn(users);
-
-      List<GetUserResponse> result = userService.getUsers("OWNER");
-
-      assertThat(result).hasSize(1);
-      assertThat(result.get(0)).isEqualTo(getUserResponse);
-      verify(userPostgresPort).getUsersByUserType(UserType.OWNER);
-      verify(userPostgresPort, never()).getAllUsers();
-    }
+    verify(userPostgresPort).getUserByName("John");
   }
 
   @Test
@@ -295,4 +278,3 @@ class UserServiceTest {
     verify(userPostgresPort).deleteUser(1L);
   }
 }
-

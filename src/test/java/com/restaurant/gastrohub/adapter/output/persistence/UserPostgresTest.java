@@ -96,7 +96,7 @@ class UserPostgresTest {
         // Act & Assert
         assertThatThrownBy(() -> userPostgres.updateUser(userEntity))
                 .isInstanceOf(DefaultException.class)
-                .hasMessage(ApiConstants.USER_NOT_FOUND + 1L);
+                .hasMessage(ApiConstants.USER_NOT_FOUND_WITH_ID + 1L);
         verify(userRepository).findById(1L);
     }
 
@@ -185,7 +185,7 @@ class UserPostgresTest {
         // Act & Assert
         assertThatThrownBy(() -> userPostgres.getUserById(1L))
                 .isInstanceOf(DefaultException.class)
-                .hasMessage(ApiConstants.USER_NOT_FOUND + 1L);
+                .hasMessage(ApiConstants.USER_NOT_FOUND_WITH_ID + 1L);
         verify(userRepository).findById(1L);
     }
 
@@ -214,43 +214,129 @@ class UserPostgresTest {
         // Act & Assert
         assertThatThrownBy(() -> userPostgres.deleteUser(1L))
                 .isInstanceOf(DefaultException.class)
-                .hasMessage(ApiConstants.USER_NOT_FOUND + 1L);
+                .hasMessage(ApiConstants.USER_NOT_FOUND_WITH_ID + 1L);
         verify(userRepository).findById(1L);
     }
 
     @Test
-    @DisplayName("getUsersByUserType should return list of users")
-    void getUsersByUserType_shouldReturnListOfUsers() {
+    @DisplayName("getUserByName should return list of users with partial name match")
+    void getUserByName_shouldReturnListOfUsersWithPartialNameMatch() {
         // Arrange
-        UserEntity userEntity = createUserEntity();
-        User expectedUser = createUser();
-        List<UserEntity> entities = List.of(userEntity);
-        when(userRepository.findByUserType(UserType.CUSTOMER)).thenReturn(entities);
+        UserEntity userEntity1 = UserEntity.builder()
+                .id(1L)
+                .name("John Doe")
+                .email("john@example.com")
+                .login("johndoe")
+                .password("password")
+                .userType(UserType.OWNER)
+                .build();
+
+        UserEntity userEntity2 = UserEntity.builder()
+                .id(2L)
+                .name("John Smith")
+                .email("john.smith@example.com")
+                .login("johnsmith")
+                .password("password")
+                .userType(UserType.CUSTOMER)
+                .build();
+
+        List<UserEntity> userEntities = List.of(userEntity1, userEntity2);
+        when(userRepository.findByNameContainingIgnoreCase("John")).thenReturn(userEntities);
 
         // Act
-        List<User> result = userPostgres.getUsersByUserType(UserType.CUSTOMER);
+        List<User> result = userPostgres.getUserByName("John");
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).usingRecursiveComparison().isEqualTo(expectedUser);
-        verify(userRepository).findByUserType(UserType.CUSTOMER);
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getName()).isEqualTo("John Doe");
+        assertThat(result.get(1).getName()).isEqualTo("John Smith");
+        verify(userRepository).findByNameContainingIgnoreCase("John");
     }
 
     @Test
-    @DisplayName("getAllUsers should return list of all users")
-    void getAllUsers_shouldReturnListOfAllUsers() {
+    @DisplayName("getUserByName should return single user when searching by exact name")
+    void getUserByName_shouldReturnSingleUserWhenSearchingByExactName() {
         // Arrange
         UserEntity userEntity = createUserEntity();
-        User expectedUser = createUser();
-        List<UserEntity> entities = List.of(userEntity);
-        when(userRepository.findAll()).thenReturn(entities);
+        List<UserEntity> userEntities = List.of(userEntity);
+        when(userRepository.findByNameContainingIgnoreCase("Test User")).thenReturn(userEntities);
 
         // Act
-        List<User> result = userPostgres.getAllUsers();
+        List<User> result = userPostgres.getUserByName("Test User");
 
         // Assert
+        assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
-        assertThat(result.get(0)).usingRecursiveComparison().isEqualTo(expectedUser);
-        verify(userRepository).findAll();
+        assertThat(result.get(0).getName()).isEqualTo("Test User");
+        verify(userRepository).findByNameContainingIgnoreCase("Test User");
+    }
+
+    @Test
+    @DisplayName("getUserByName should return empty list when no users found")
+    void getUserByName_shouldReturnEmptyListWhenNoUsersFound() {
+        // Arrange
+        when(userRepository.findByNameContainingIgnoreCase("NonExistent")).thenReturn(List.of());
+
+        // Act
+        List<User> result = userPostgres.getUserByName("NonExistent");
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+        verify(userRepository).findByNameContainingIgnoreCase("NonExistent");
+    }
+
+    @Test
+    @DisplayName("getUserByName should be case-insensitive")
+    void getUserByName_shouldBeCaseInsensitive() {
+        // Arrange
+        UserEntity userEntity = createUserEntity();
+        List<UserEntity> userEntities = List.of(userEntity);
+        when(userRepository.findByNameContainingIgnoreCase("test user")).thenReturn(userEntities);
+
+        // Act
+        List<User> result = userPostgres.getUserByName("test user");
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getName()).isEqualTo("Test User");
+        verify(userRepository).findByNameContainingIgnoreCase("test user");
+    }
+
+    @Test
+    @DisplayName("getUserByName should return multiple users with partial match")
+    void getUserByName_shouldReturnMultipleUsersWithPartialMatch() {
+        // Arrange
+        UserEntity userEntity1 = UserEntity.builder()
+                .id(1L)
+                .name("Alison Guimaraes")
+                .email("alison@example.com")
+                .login("alison")
+                .password("password")
+                .userType(UserType.OWNER)
+                .build();
+
+        UserEntity userEntity2 = UserEntity.builder()
+                .id(2L)
+                .name("Alison Silva")
+                .email("alison.silva@example.com")
+                .login("alisonsilva")
+                .password("password")
+                .userType(UserType.CUSTOMER)
+                .build();
+
+        List<UserEntity> userEntities = List.of(userEntity1, userEntity2);
+        when(userRepository.findByNameContainingIgnoreCase("Alison")).thenReturn(userEntities);
+
+        // Act
+        List<User> result = userPostgres.getUserByName("Alison");
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(user -> user.getName().contains("Alison"));
+        verify(userRepository).findByNameContainingIgnoreCase("Alison");
     }
 }

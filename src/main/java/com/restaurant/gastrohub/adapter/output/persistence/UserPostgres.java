@@ -4,7 +4,6 @@ import com.restaurant.gastrohub.adapter.output.model.UserEntity;
 import com.restaurant.gastrohub.adapter.output.persistence.repository.UserRepository;
 import com.restaurant.gastrohub.application.domain.ApiConstants;
 import com.restaurant.gastrohub.application.domain.user.User;
-import com.restaurant.gastrohub.application.domain.enums.UserType;
 import com.restaurant.gastrohub.application.exception.DefaultException;
 import com.restaurant.gastrohub.application.mapper.UserMapper;
 import com.restaurant.gastrohub.application.port.output.UserPostgresPort;
@@ -31,7 +30,7 @@ public class UserPostgres implements UserPostgresPort {
     userRepository.findById(userEntity.getId())
         .ifPresentOrElse(
             existingUser -> userRepository.save(userEntity), () -> {
-              throw new DefaultException(ApiConstants.USER_NOT_FOUND + userEntity.getId());
+              throw new DefaultException(ApiConstants.USER_NOT_FOUND_WITH_ID + userEntity.getId());
             });
   }
 
@@ -49,7 +48,15 @@ public class UserPostgres implements UserPostgresPort {
   public User getUserById(Long id) {
     return UserMapper.INSTANCE.userEntityToDomain(
         userRepository.findById(id)
-            .orElseThrow(() -> new DefaultException(ApiConstants.USER_NOT_FOUND + id)));
+            .orElseThrow(() -> new DefaultException(ApiConstants.USER_NOT_FOUND_WITH_ID + id)));
+  }
+
+  @Override
+   public List<User> getUserByName(String name) {
+    return userRepository.findByNameContainingIgnoreCase(name)
+        .stream()
+        .map(UserMapper.INSTANCE::userEntityToDomain)
+        .toList();
   }
 
   @Override
@@ -57,23 +64,8 @@ public class UserPostgres implements UserPostgresPort {
     userRepository.findById(id)
         .ifPresentOrElse(
             user -> userRepository.deleteById(id), () -> {
-              throw new DefaultException(ApiConstants.USER_NOT_FOUND + id);
+              throw new DefaultException(ApiConstants.USER_NOT_FOUND_WITH_ID + id);
             });
   }
 
-  @Override
-  public List<User> getUsersByUserType(UserType userType) {
-    return userRepository.findByUserType(userType)
-        .stream()
-        .map(UserMapper.INSTANCE::userEntityToDomain)
-        .toList();
-  }
-
-  @Override
-  public List<User> getAllUsers() {
-    return userRepository.findAll()
-        .stream()
-        .map(UserMapper.INSTANCE::userEntityToDomain)
-        .toList();
-  }
 }

@@ -10,15 +10,12 @@ public final class DateTimeUtils {
 
   private DateTimeUtils() {}
 
-  public static DateTimeFormatter getDateTimeFormatter() {
-    return DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX")
-        .withResolverStyle(ResolverStyle.STRICT);
-  }
-
   public static ZonedDateTime generateDateTimeZoneUTC() { return ZonedDateTime.now(UTC); }
 
-  public static String getDateTimeZoneUTC() {
-    return generateDateTimeZoneUTC().format(getDateTimeFormatter());
+  public static String getProblemDetailTimestamp() {
+    DateTimeFormatter problemDetailFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX")
+        .withResolverStyle(ResolverStyle.STRICT);
+    return ZonedDateTime.now(UTC).format(problemDetailFormatter);
   }
 
 }

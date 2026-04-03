@@ -13,5 +13,5 @@ public interface UserUseCase {
     void updatePassword(Long userId, User user);
     void deleteUser(Long userId);
     GetUserResponse getUser(Long userId);
-    List<GetUserResponse> getUsers(String userType);
+    List<GetUserResponse> getUserByName(String name);
 }

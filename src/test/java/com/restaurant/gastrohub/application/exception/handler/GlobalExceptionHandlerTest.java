@@ -1,15 +1,17 @@
 package com.restaurant.gastrohub.application.exception.handler;
 
 import com.restaurant.gastrohub.application.exception.DefaultException;
-import com.restaurant.gastrohub.application.exception.error.ErrorResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.context.request.ServletWebRequest;
 
 import java.util.Map;
 
@@ -21,8 +23,8 @@ class GlobalExceptionHandlerTest {
     private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
     @Test
-    @DisplayName("handleValidation should return 400 with field errors")
-    void handleValidation_shouldReturn400WithFieldErrors() {
+    @DisplayName("handleValidation should return 400 with field errors in ProblemDetail")
+    void handleValidation_shouldReturn400WithFieldErrorsInProblemDetail() {
         // Arrange
         BindingResult bindingResult = new BeanPropertyBindingResult(new Object(), "testObject");
         bindingResult.addError(new FieldError("testObject", "email", "Email is invalid"));
@@ -30,58 +32,100 @@ class GlobalExceptionHandlerTest {
         bindingResult.addError(new FieldError("testObject", "email", "Email format error")); // Duplicate field to cover merge
         MethodArgumentNotValidException ex = new MethodArgumentNotValidException(null, bindingResult);
 
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/gastrohub/api/v1/users");
+        ServletWebRequest webRequest = new ServletWebRequest(request);
+
         // Act
-        ResponseEntity<ErrorResponse> response = handler.handleValidation(ex);
+        ResponseEntity<ProblemDetail> response = handler.handleValidation(ex, webRequest);
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        ErrorResponse body = response.getBody();
+        ProblemDetail body = response.getBody();
         assertThat(body).isNotNull();
-        assertThat(body.status()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(body.message()).isEqualTo("Validation failed");
-        assertThat(body.errors()).isNotNull();
-        assertThat(body.errors()).hasSize(2); // email and login
-        assertThat(body.errors()).containsEntry("email", "Email is invalid"); // First one wins due to merge
-        assertThat(body.errors()).containsEntry("login", "Login is required");
-        assertThat(body.timestamp()).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(body.getTitle()).isEqualTo("Validation Error");
+        assertThat(body.getDetail()).contains("validation errors");
+        assertThat(body.getProperties()).containsKey("errors");
+
+        @SuppressWarnings("unchecked")
+        Map<String, String> errors = (Map<String, String>) body.getProperties().get("errors");
+        assertThat(errors).hasSize(2); // email and login
+        assertThat(errors).containsEntry("email", "Email is invalid"); // First one wins due to merge
+        assertThat(errors).containsEntry("login", "Login is required");
+        assertThat(body.getProperties()).containsKey("timestamp");
     }
 
     @Test
-    @DisplayName("handleConflict should return 422 with exception message")
-    void handleConflict_shouldReturn422WithExceptionMessage() {
+    @DisplayName("handleConflict should return 422 with duplicate email error")
+    void handleConflict_shouldReturn422WithDuplicateEmailError() {
+        // Arrange
+        String errorMessage = "Email already in use: test@example.com";
+        DefaultException ex = new DefaultException(errorMessage);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/gastrohub/api/v1/users");
+        ServletWebRequest webRequest = new ServletWebRequest(request);
+
+        // Act
+        ResponseEntity<ProblemDetail> response = handler.handleConflict(ex, webRequest);
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        ProblemDetail body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        assertThat(body.getTitle()).isEqualTo("Duplicate Resource");
+        assertThat(body.getDetail()).isEqualTo(errorMessage);
+        assertThat(body.getProperties()).containsKey("timestamp");
+    }
+
+    @Test
+    @DisplayName("handleConflict should return 404 with not found error")
+    void handleConflict_shouldReturn404WithNotFoundError() {
         // Arrange
         String errorMessage = "User not found with id: 1";
         DefaultException ex = new DefaultException(errorMessage);
 
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/gastrohub/api/v1/users/1");
+        ServletWebRequest webRequest = new ServletWebRequest(request);
+
         // Act
-        ResponseEntity<ErrorResponse> response = handler.handleConflict(ex);
+        ResponseEntity<ProblemDetail> response = handler.handleConflict(ex, webRequest);
 
         // Assert
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        ErrorResponse body = response.getBody();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        ProblemDetail body = response.getBody();
         assertThat(body).isNotNull();
-        assertThat(body.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
-        assertThat(body.message()).isEqualTo(errorMessage);
-        assertThat(body.errors()).isNull();
-        assertThat(body.timestamp()).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(body.getTitle()).isEqualTo("Resource Not Found");
+        assertThat(body.getDetail()).isEqualTo(errorMessage);
+        assertThat(body.getProperties()).containsKey("timestamp");
     }
 
     @Test
-    @DisplayName("handleGeneric should return 500 with generic message")
-    void handleGeneric_shouldReturn500WithGenericMessage() {
+    @DisplayName("handleGeneric should return 500 with generic message in ProblemDetail")
+    void handleGeneric_shouldReturn500WithGenericMessageInProblemDetail() {
         // Arrange
         Exception ex = new RuntimeException("Some unexpected error");
 
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/gastrohub/api/v1/users");
+        ServletWebRequest webRequest = new ServletWebRequest(request);
+
         // Act
-        ResponseEntity<ErrorResponse> response = handler.handleGeneric(ex);
+        ResponseEntity<ProblemDetail> response = handler.handleGeneric(ex, webRequest);
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        ErrorResponse body = response.getBody();
+        ProblemDetail body = response.getBody();
         assertThat(body).isNotNull();
-        assertThat(body.status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        assertThat(body.message()).isEqualTo("An unexpected error occurred");
-        assertThat(body.errors()).isNull();
-        assertThat(body.timestamp()).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        assertThat(body.getTitle()).isEqualTo("Internal Server Error");
+        assertThat(body.getDetail()).contains("unexpected error occurred");
+        assertThat(body.getProperties()).containsKey("timestamp");
     }
 }
+
+

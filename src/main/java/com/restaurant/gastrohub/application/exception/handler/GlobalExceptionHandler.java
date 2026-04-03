@@ -1,30 +1,41 @@
 package com.restaurant.gastrohub.application.exception.handler;
 
-import com.restaurant.gastrohub.application.exception.error.ErrorResponse;
 import com.restaurant.gastrohub.application.domain.ApiConstants;
 import com.restaurant.gastrohub.application.exception.DefaultException;
 import com.restaurant.gastrohub.application.util.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.springframework.validation.FieldError;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
-  // 400 - Validation errors from @Valid
+  private static final Map<String, ErrorDetails> ERROR_DETAILS_MAP = new LinkedHashMap<>();
+
+  static {
+    ERROR_DETAILS_MAP.put("already in use", new ErrorDetails(ApiConstants.ERROR_TYPE_DUPLICATE_RESOURCE, ApiConstants.ERROR_TITLE_DUPLICATE_RESOURCE));
+    ERROR_DETAILS_MAP.put("not found", new ErrorDetails(ApiConstants.ERROR_TYPE_RESOURCE_NOT_FOUND, ApiConstants.ERROR_TITLE_RESOURCE_NOT_FOUND));
+    ERROR_DETAILS_MAP.put("Invalid", new ErrorDetails(ApiConstants.ERROR_TYPE_INVALID_REQUEST, ApiConstants.ERROR_TITLE_INVALID_REQUEST));
+  }
+
+  // ...existing code...
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+  public ResponseEntity<ProblemDetail> handleValidation(
+      MethodArgumentNotValidException ex, WebRequest request) {
+
     Map<String, String> fieldErrors = ex.getBindingResult()
         .getFieldErrors()
         .stream()
@@ -35,39 +46,74 @@ public class GlobalExceptionHandler {
 
     log.warn("handleValidation - Validation failed: fields={}", fieldErrors.keySet());
 
+    ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+    problemDetail.setType(URI.create(ApiConstants.PROBLEM_DETAIL_TYPE_BASE + ApiConstants.ERROR_TYPE_VALIDATION));
+    problemDetail.setTitle(ApiConstants.ERROR_TITLE_VALIDATION);
+    problemDetail.setDetail(ApiConstants.ERROR_DETAIL_VALIDATION);
+    problemDetail.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+    problemDetail.setProperty("errors", fieldErrors);
+    problemDetail.setProperty("timestamp", DateTimeUtils.getProblemDetailTimestamp());
+
     return ResponseEntity
         .status(HttpStatus.BAD_REQUEST)
-        .body(ErrorResponse.of(
-            HttpStatus.BAD_REQUEST.value(),
-            "Validation failed",
-            fieldErrors,
-            DateTimeUtils.getDateTimeZoneUTC()));
+        .body(problemDetail);
   }
 
-  // 422 - Conflict (duplicate email, login, etc.)
+  // ...existing code...
   @ExceptionHandler(DefaultException.class)
-  public ResponseEntity<ErrorResponse> handleConflict(DefaultException ex) {
+  public ResponseEntity<ProblemDetail> handleConflict(
+      DefaultException ex, WebRequest request) {
+
     log.warn("handleConflict - Conflict: message={}", ex.getMessage());
 
+    ErrorDetails errorDetails = findErrorDetails(ex.getMessage());
+    HttpStatus status = determineStatus(ex.getMessage());
+
+    ProblemDetail problemDetail = ProblemDetail.forStatus(status);
+    problemDetail.setType(URI.create(ApiConstants.PROBLEM_DETAIL_TYPE_BASE + errorDetails.errorType()));
+    problemDetail.setTitle(errorDetails.title());
+    problemDetail.setDetail(ex.getMessage());
+    problemDetail.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+    problemDetail.setProperty("timestamp", DateTimeUtils.getProblemDetailTimestamp());
+
     return ResponseEntity
-        .status(HttpStatus.UNPROCESSABLE_ENTITY)
-        .body(ErrorResponse.of(
-            HttpStatus.UNPROCESSABLE_ENTITY.value(),
-            ex.getMessage(),
-            DateTimeUtils.getDateTimeZoneUTC()));
+        .status(status)
+        .body(problemDetail);
   }
 
-  // 500 - Unexpected errors
+  // ...existing code...
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
+  public ResponseEntity<ProblemDetail> handleGeneric(
+      Exception ex, WebRequest request) {
+
     log.error("handleGeneric - Unexpected error: message={}", ex.getMessage(), ex);
+
+    ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+    problemDetail.setType(URI.create(ApiConstants.PROBLEM_DETAIL_TYPE_BASE + ApiConstants.ERROR_TYPE_INTERNAL_SERVER));
+    problemDetail.setTitle(ApiConstants.ERROR_TITLE_INTERNAL_SERVER);
+    problemDetail.setDetail(ApiConstants.ERROR_DETAIL_INTERNAL_SERVER);
+    problemDetail.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+    problemDetail.setProperty("timestamp", DateTimeUtils.getProblemDetailTimestamp());
 
     return ResponseEntity
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(ErrorResponse.of(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "An unexpected error occurred",
-            DateTimeUtils.getDateTimeZoneUTC()));
+        .body(problemDetail);
   }
+
+
+  private ErrorDetails findErrorDetails(String message) {
+    return ERROR_DETAILS_MAP.entrySet().stream()
+        .filter(entry -> message.contains(entry.getKey()))
+        .map(Map.Entry::getValue)
+        .findFirst()
+        .orElse(new ErrorDetails(ApiConstants.ERROR_TYPE_CONFLICT, ApiConstants.ERROR_TITLE_UNPROCESSABLE_ENTITY));
+  }
+
+  private HttpStatus determineStatus(String message) {
+    return message.contains("not found") ? HttpStatus.NOT_FOUND : HttpStatus.UNPROCESSABLE_ENTITY;
+  }
+
+  private record ErrorDetails(String errorType, String title) {}
 }
+
 

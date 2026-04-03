@@ -1,21 +1,24 @@
 {
   "info": {
-    "_postman_id": "ccfbc443-1b7d-4ddb-b930-15d8f7bdad8c",
+    "_postman_id": "4672a8dc-8ee6-4f1c-a00d-e62052c14325",
     "name": "GastroHub",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "11999182"
   },
   "item": [
     {
-      "name": "CreateUser",
+      "name": "(1) CreateUser",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "var userId = pm.response.json().id;\r",
-              "console.log(\"User ID capturado: \" + userId);\r",
-              "pm.environment.set(\"userId\", userId);"
+              "pm.response.code === 201 && (() => {\r",
+              "  var userId = pm.response.json().id;\r",
+              "  console.log(\"User ID capturado: \" + userId);\r",
+              "  pm.environment.set(\"userId\", userId);\r",
+              "})()\r",
+              ""
             ],
             "type": "text/javascript",
             "packages": {},
@@ -37,136 +40,6 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"name\": \"Alison Guimaraes\",\r\n  \"email\": \"alisonguimaraes@email.com\",\r\n  \"login\": \"alisonguimaraes\",\r\n  \"password\": \"Gastr0@Hub\",\r\n  \"userType\": \"OWNER\",\r\n  \"address\": \"Rua Fulano da Silva, 123 - São Paulo, SP\"\r\n}\r\n",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{localhost80}}/users/v1/users",
-          "host": [
-            "{{localhost80}}"
-          ],
-          "path": [
-            "users",
-            "v1",
-            "users"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "GetUser",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "auth": {
-          "type": "noauth"
-        },
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{localhost80}}/users/v1/users/{{userId}}",
-          "host": [
-            "{{localhost80}}"
-          ],
-          "path": [
-            "users",
-            "v1",
-            "users",
-            "{{userId}}"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "GetUsers",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "auth": {
-          "type": "noauth"
-        },
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{localhost80}}/users/v1/users?userType=owner",
-          "host": [
-            "{{localhost80}}"
-          ],
-          "path": [
-            "users",
-            "v1",
-            "users"
-          ],
-          "query": [
-            {
-              "key": "userType",
-              "value": "owner"
-            }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "UpdateUser",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "PATCH",
-        "header": [],
-        "body": {
-          "mode": "raw",
           "raw": "{\r\n  \"name\": \"Alison Guimaraes\",\r\n  \"email\": \"alisonguimaraes@gmail.com\",\r\n  \"login\": \"alisonguimaraes\",\r\n  \"password\": \"Gastr0@Hub\",\r\n  \"userType\": \"OWNER\",\r\n  \"address\": \"Rua Fulano da Silva, 123 - São Paulo, SP\"\r\n}\r\n",
           "options": {
             "raw": {
@@ -175,12 +48,55 @@
           }
         },
         "url": {
-          "raw": "{{localhost80}}/users/v1/users/{{userId}}",
+          "raw": "{{localhost80}}/gastrohub/api/v1/users",
           "host": [
             "{{localhost80}}"
           ],
           "path": [
-            "users",
+            "gastrohub",
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(2) GetUser",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/users/{{userId}}",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
             "v1",
             "users",
             "{{userId}}"
@@ -190,7 +106,7 @@
       "response": []
     },
     {
-      "name": "UpdatePassword",
+      "name": "(3) UpdatePassword",
       "event": [
         {
           "listen": "test",
@@ -217,12 +133,13 @@
           }
         },
         "url": {
-          "raw": "{{localhost80}}/users/v1/users/{{userId}}/password",
+          "raw": "{{localhost80}}/gastrohub/api/v1/users/{{userId}}/password",
           "host": [
             "{{localhost80}}"
           ],
           "path": [
-            "users",
+            "gastrohub",
+            "api",
             "v1",
             "users",
             "{{userId}}",
@@ -233,17 +150,349 @@
       "response": []
     },
     {
-      "name": "DeleteUser",
+      "name": "(4) GetUser",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
       "request": {
-        "method": "DELETE",
-        "header": [],
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
         "url": {
-          "raw": "{{localhost80}}/users/v1/users/{{userId}}",
+          "raw": "{{localhost80}}/gastrohub/api/v1/users/{{userId}}",
           "host": [
             "{{localhost80}}"
           ],
           "path": [
+            "gastrohub",
+            "api",
+            "v1",
             "users",
+            "{{userId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(5) UpdateUser",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Alison Guimarae\",\r\n  \"email\": \"alisonguimaraes@email.com\",\r\n  \"login\": \"alisonguimaraes\",\r\n  \"userType\": \"OWNER\",\r\n  \"address\": \"Rua Fulano dos Santos, 123 - São Paulo, SP\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/users/{{userId}}",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
+            "v1",
+            "users",
+            "{{userId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(6) GetUserByName",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/users?name=Alison",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
+            "v1",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "name",
+              "value": "Alison"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(7) CreateUser_InvalidEmail_Duplicate",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Should return 422 for duplicate email\", () => {\r",
+              "  pm.expect(pm.response.code).to.equal(422);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Another User\",\r\n  \"email\": \"alisonguimaraes@email.com\",\r\n  \"login\": \"anotheruser\",\r\n  \"password\": \"Gastr0@Hub\",\r\n  \"userType\": \"CUSTOMER\",\r\n  \"address\": \"Rua Another, 456 - São Paulo, SP\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/users",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(8) CreateUser_MissingFields",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Should return 400 for missing required fields\", () => {\r",
+              "  pm.expect(pm.response.code).to.equal(400);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Test User\",\r\n  \"email\": \"testuser@email.com\",\r\n  \"userType\": \"CUSTOMER\",\r\n  \"address\": \"Rua Test, 789 - São Paulo, SP\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/users",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(9) UpdatePassword_InvalidPassword",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Should return 422 for invalid current password\", () => {\r",
+              "  pm.expect(pm.response.code).to.equal(422);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"currentPassword\": \"WrongPassword123\",\r\n  \"newPassword\": \"Gastr3@Hub\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/users/{{userId}}/password",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
+            "v1",
+            "users",
+            "{{userId}}",
+            "password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(10) UpdateUser_NonExistentUser",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Should return 422 for non-existent user\", () => {\r",
+              "  pm.expect(pm.response.code).to.equal(422);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Updated Name\",\r\n  \"email\": \"newemail@gmail.com\",\r\n  \"login\": \"updatedlogin\",\r\n  \"userType\": \"OWNER\",\r\n  \"address\": \"Rua Updated, 999 - São Paulo, SP\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/users/99999",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
+            "v1",
+            "users",
+            "99999"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(11) DeleteUser",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/users/{{userId}}",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
             "v1",
             "users",
             "{{userId}}"

@@ -18,12 +18,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
@@ -45,9 +46,12 @@ class UserControllerTest {
   private UpdateUserPasswordRequest updateUserPasswordRequest;
   private CreateUserResponse createUserResponse;
   private GetUserResponse getUserResponse;
+  private ZonedDateTime testDateTime;
 
   @BeforeEach
   void setUp() {
+    testDateTime = ZonedDateTime.of(2024, 1, 1, 10, 0, 0, 0, ZoneId.of("UTC"));
+
     createUserRequest = new CreateUserRequest(
         "John Doe",
         "john@example.com",
@@ -83,7 +87,7 @@ class UserControllerTest {
         "john@example.com",
         "johndoe",
         UserType.OWNER,
-        "2024-01-01 10:00:00",
+        testDateTime,
         "123 Main St"
     );
   }
@@ -101,54 +105,13 @@ class UserControllerTest {
     verify(userUseCase, times(1)).createUser(any(User.class));
   }
 
-  @Test
-  @DisplayName("Should get all users successfully")
-  void testGetAllUsersSuccess() {
-    List<GetUserResponse> users = List.of(getUserResponse);
-    when(userUseCase.getUsers(null)).thenReturn(users);
-
-    ResponseEntity<List<GetUserResponse>> response = userController.getAllUsers(null);
-
-    assertThat(response).isNotNull();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo(users);
-    assertThat(response.getBody()).hasSize(1);
-    verify(userUseCase, times(1)).getUsers(null);
-  }
-
-  @Test
-  @DisplayName("Should get all users with filter by userType")
-  void testGetAllUsersWithFilterSuccess() {
-    List<GetUserResponse> users = List.of(getUserResponse);
-    when(userUseCase.getUsers("ADMIN")).thenReturn(users);
-
-    ResponseEntity<List<GetUserResponse>> response = userController.getAllUsers("ADMIN");
-
-    assertThat(response).isNotNull();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo(users);
-    verify(userUseCase, times(1)).getUsers("ADMIN");
-  }
-
-  @Test
-  @DisplayName("Should get all users returning empty list")
-  void testGetAllUsersEmpty() {
-    when(userUseCase.getUsers(anyString())).thenReturn(List.of());
-
-    ResponseEntity<List<GetUserResponse>> response = userController.getAllUsers("ADMIN");
-
-    assertThat(response).isNotNull();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEmpty();
-    verify(userUseCase, times(1)).getUsers("ADMIN");
-  }
 
   @Test
   @DisplayName("Should get user by id successfully")
   void testGetUserByIdSuccess() {
     when(userUseCase.getUser(1L)).thenReturn(getUserResponse);
 
-    ResponseEntity<GetUserResponse> response = userController.getUsers(1L);
+    ResponseEntity<GetUserResponse> response = userController.getUser(1L);
 
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -160,23 +123,64 @@ class UserControllerTest {
   @DisplayName("Should get user by different id successfully")
   void testGetUserByDifferentIdSuccess() {
     Long userId = 999L;
+    ZonedDateTime dateTime2 = ZonedDateTime.of(2024, 2, 1, 15, 30, 0, 0, ZoneId.of("UTC"));
     GetUserResponse differentUserResponse = new GetUserResponse(
         "999",
         "Jane Doe",
         "jane@example.com",
         "janedoe",
         UserType.CUSTOMER,
-        "2024-02-01 15:30:00",
+        dateTime2,
         "789 Pine Rd"
     );
     when(userUseCase.getUser(userId)).thenReturn(differentUserResponse);
 
-    ResponseEntity<GetUserResponse> response = userController.getUsers(userId);
+    ResponseEntity<GetUserResponse> response = userController.getUser(userId);
 
     assertThat(response).isNotNull();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isEqualTo(differentUserResponse);
     verify(userUseCase, times(1)).getUser(userId);
+  }
+
+  @Test
+  @DisplayName("Should get user by name successfully")
+  void testGetUserByNameSuccess() {
+    List<GetUserResponse> users = List.of(getUserResponse);
+    when(userUseCase.getUserByName("John Doe")).thenReturn(users);
+
+    ResponseEntity<List<GetUserResponse>> response = userController.getUserByName("John Doe");
+
+    assertThat(response).isNotNull();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).hasSize(1);
+    assertThat(response.getBody()).isEqualTo(users);
+    verify(userUseCase, times(1)).getUserByName("John Doe");
+  }
+
+  @Test
+  @DisplayName("Should get multiple users by partial name match")
+  void testGetUserByPartialNameSuccess() {
+    ZonedDateTime dateTime2 = ZonedDateTime.of(2024, 2, 1, 15, 30, 0, 0, ZoneId.of("UTC"));
+    GetUserResponse user2 = new GetUserResponse(
+        "2",
+        "John Smith",
+        "john.smith@example.com",
+        "johnsmith",
+        UserType.CUSTOMER,
+        dateTime2,
+        "456 Oak Ave"
+    );
+    List<GetUserResponse> users = List.of(getUserResponse, user2);
+    when(userUseCase.getUserByName("John")).thenReturn(users);
+
+    ResponseEntity<List<GetUserResponse>> response = userController.getUserByName("John");
+
+    assertThat(response).isNotNull();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).hasSize(2);
+    assertThat(response.getBody()).isEqualTo(users);
+    verify(userUseCase, times(1)).getUserByName("John");
   }
 
   @Test
@@ -268,7 +272,7 @@ class UserControllerTest {
 
     // Get
     when(userUseCase.getUser(1L)).thenReturn(getUserResponse);
-    ResponseEntity<GetUserResponse> getResponse = userController.getUsers(1L);
+    ResponseEntity<GetUserResponse> getResponse = userController.getUser(1L);
     assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
     // Update
@@ -305,25 +309,5 @@ class UserControllerTest {
     userController.updateUser(1L, updateUserRequest);
 
     verify(userUseCase).updateUser(anyLong(), any(User.class));
-  }
-
-  @Test
-  @DisplayName("Should handle getAll users with multiple items")
-  void testGetAllUsersMultipleItems() {
-    List<GetUserResponse> users = List.of(
-        getUserResponse,
-        new GetUserResponse("2", "Jane Doe", "jane@example.com", "janedoe", 
-                           UserType.CUSTOMER, "2024-01-02 11:00:00", "456 Oak Ave"),
-        new GetUserResponse("3", "Bob Smith", "bob@example.com", "bobsmith", 
-                           UserType.OWNER, "2024-01-03 12:00:00", "789 Pine Rd")
-    );
-    when(userUseCase.getUsers(null)).thenReturn(users);
-
-    ResponseEntity<List<GetUserResponse>> response = userController.getAllUsers(null);
-
-    assertThat(response).isNotNull();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).hasSize(3);
-    assertThat(response.getBody()).isEqualTo(users);
   }
 }

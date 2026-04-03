@@ -53,18 +53,18 @@ public class UserEntity {
   private String address;
 
   @Column(nullable = false)
-  private String lastUpdateAt;
+  private ZonedDateTime lastUpdateAt;
 
   private static final BCryptPasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
 
   @PrePersist
   protected void onCreate() {
     this.password = PASSWORD_ENCODER.encode(this.password);
-    this.lastUpdateAt = DateTimeUtils.getDateTimeZoneUTC();
+    this.lastUpdateAt = DateTimeUtils.generateDateTimeZoneUTC();
   }
 
   @PreUpdate
   protected void onUpdate() {
-    this.lastUpdateAt = DateTimeUtils.getDateTimeZoneUTC();
+    this.lastUpdateAt = DateTimeUtils.generateDateTimeZoneUTC();
   }
 }

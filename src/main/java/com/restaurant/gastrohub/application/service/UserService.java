@@ -9,10 +9,9 @@ import com.restaurant.gastrohub.application.mapper.UserMapper;
 import com.restaurant.gastrohub.application.port.input.UserUseCase;
 import com.restaurant.gastrohub.application.port.output.UserPostgresPort;
 import com.restaurant.gastrohub.application.util.ConflictValidatorUtils;
-import com.restaurant.gastrohub.application.util.UserTypeParserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,7 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements UserUseCase {
 
-  private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+  private final PasswordEncoder passwordEncoder;
   private final UserPostgresPort userPostgresPort;
 
   @Override
@@ -100,12 +99,9 @@ public class UserService implements UserUseCase {
   }
 
   @Override
-  public List<GetUserResponse> getUsers(String userType) {
-    log.info("getUsers - Fetching users with userType={}", userType);
-    return Optional.ofNullable(userType)
-        .map(UserTypeParserUtils::parse)
-        .map(userPostgresPort::getUsersByUserType)
-        .orElseGet(userPostgresPort::getAllUsers)
+  public List<GetUserResponse> getUserByName(String name) {
+    log.info("getUserByName - Fetching users with name={}", name);
+    return userPostgresPort.getUserByName(name)
         .stream()
         .map(UserMapper.INSTANCE::domainUserToGetUserResponse)
         .toList();
