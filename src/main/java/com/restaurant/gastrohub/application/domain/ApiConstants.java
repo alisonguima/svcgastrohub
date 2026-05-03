@@ -26,7 +26,6 @@ public class ApiConstants {
     public static final String PASSWORD_INVALID = "Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number and one special character (@$!%*?&)";
     public static final String INVALID_PASSWORD = "Current password is incorrect";
     public static final String USER_NOT_FOUND_WITH_ID = "User not found with id: ";
-    public static final String USER_NOT_FOUND_WITH_NAME = "User not found with name: ";
 
     public static final String USER_TYPE_REQUIRED = "User type is required";
 
@@ -53,4 +52,9 @@ public class ApiConstants {
 
     public static final String ERROR_DETAIL_VALIDATION = "One or more fields have validation errors";
     public static final String ERROR_DETAIL_INTERNAL_SERVER = "An unexpected error occurred. Please try again later.";
+
+    public static final String LOGIN_REQUIRED_AUTH = "Login is required";
+    public static final String PASSWORD_REQUIRED_AUTH = "Password is required";
+    public static final String INVALID_CREDENTIALS = "Invalid login or password";
+    public static final String UNAUTHORIZED = "Unauthorized - Invalid or missing token";
 }

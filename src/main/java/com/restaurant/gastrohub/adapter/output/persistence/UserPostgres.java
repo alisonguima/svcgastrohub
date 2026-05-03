@@ -52,6 +52,13 @@ public class UserPostgres implements UserPostgresPort {
   }
 
   @Override
+  public User getUserByLogin(String login) {
+    return UserMapper.INSTANCE.userEntityToDomain(
+        userRepository.findByLogin(login)
+            .orElseThrow(() -> new DefaultException(ApiConstants.INVALID_CREDENTIALS)));
+  }
+
+  @Override
   public List<User> getUserByName(String name) {
     return userRepository.findByNameContainingIgnoreCase(name)
         .stream()

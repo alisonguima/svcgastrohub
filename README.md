@@ -8,6 +8,7 @@ GastroHub é um sistema backend unificado para uma rede local de restaurantes, p
 - **Tipos de Usuários**: Diferenciação entre proprietários (OWNER) e clientes (CUSTOMER).
 - **Busca de Usuários**: Busca por nome com suporte a busca parcial e case-insensitive.
 - **Alteração de Senha**: Endpoint exclusivo para atualização segura de senha.
+- **Autenticação JWT**: Autenticação segura usando JSON Web Tokens com Spring Security.
 - **Validação de Dados**: Validações robustas para entrada de dados.
 - **Tratamento de Erros**: Respostas padronizadas com RFC 7807 ProblemDetail.
 - **Documentação de API**: Documentação interativa com OpenAPI/Swagger.
@@ -17,6 +18,8 @@ GastroHub é um sistema backend unificado para uma rede local de restaurantes, p
 ## Tecnologias Utilizadas
 - **Java 21**
 - **Spring Boot 3.5.11**
+- **Spring Security** (autenticação e autorização)
+- **JWT (JSON Web Tokens)** (geração e validação de tokens)
 - **PostgreSQL** (banco de dados relacional)
 - **JPA/Hibernate** (mapeamento objeto-relacional)
 - **Docker & Docker Compose** (containerização)
@@ -73,6 +76,7 @@ http://localhost:8080/gastrohub/api/v1
 ```
 
 ### Endpoints Disponíveis
+- `POST /auth/login` - Autenticar usuário e obter JWT token
 - `POST /users` - Criar novo usuário
 - `GET /users/{id}` - Obter usuário por ID
 - `GET /users?name={name}` - Buscar usuários por nome (suporta busca parcial, case-insensitive)
@@ -96,6 +100,18 @@ A API utiliza o padrão RFC 7807 ProblemDetail para padronizar respostas de erro
     "email": "Email must be valid",
     "login": "Login is required"
   },
+  "timestamp": "2026-04-03T20:50:10Z"
+}
+```
+
+**Exemplo - Erro 401 (Não Autenticado):**
+```json
+{
+  "type": "https://api.gastrohub.com/errors/unauthorized",
+  "title": "Unauthorized",
+  "status": 401,
+  "detail": "Unauthorized - Invalid or missing token",
+  "instance": "/gastrohub/api/v1/users/1",
   "timestamp": "2026-04-03T20:50:10Z"
 }
 ```
@@ -154,10 +170,59 @@ Os testes cobrem:
 - **UserPostgresTest**: Testes de persistência
 - **GlobalExceptionHandlerTest**: Testes do tratamento de exceções
 - **UserEntityTest**: Testes da entidade de usuário
+- **AuthenticationServiceTest**: Testes do serviço de autenticação
+- **JwtTokenProviderTest**: Testes da geração e validação de tokens JWT
+- **AuthControllerTest**: Testes do controller de autenticação
 
 Todos os testes são unitários e utilizam Mockito para isolamento.
 
-## Contribuição
+## 🔐 Autenticação JWT
+
+A aplicação implementa autenticação segura usando **Spring Security** com **JWT (JSON Web Tokens)**:
+
+### Como Funciona
+
+1. **Login**: O usuário faz login com suas credenciais em `POST /auth/login`
+2. **Token**: Recebe um JWT token válido por 24 horas
+3. **Requisições**: Inclui o token no header `Authorization: Bearer {token}` em requisições protegidas
+4. **Validação**: O filtro JWT valida o token em cada requisição
+
+### Exemplo de Fluxo
+
+```bash
+1. Fazer login:
+POST /api/v1/auth/login
+{
+  "login": "johndoe",
+  "password": "Password123!"
+}
+
+Resposta:
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "userId": 1,
+  "login": "johndoe",
+  "type": "Bearer"
+}
+
+2. Usar o token:
+GET /api/v1/users/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Endpoints Públicos
+- `POST /api/v1/auth/login` - Obter token JWT
+- `POST /api/v1/users` - Criar novo usuário (sem autenticação)
+- Swagger UI - `/swagger-ui.html`
+
+### Endpoints Protegidos
+Todos os outros endpoints requerem um token JWT válido no header `Authorization`.
+
+Para mais detalhes, consulte **JWT_AUTHENTICATION_GUIDE.md**.
+
+---
+
+
 1. Faça um fork do projeto.
 2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`).
 3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`).

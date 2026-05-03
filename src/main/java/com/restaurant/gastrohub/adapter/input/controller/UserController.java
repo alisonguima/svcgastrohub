@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -60,9 +61,10 @@ public class UserController {
 
 
   @GetMapping("/{id}")
-  @Operation(summary = "Get user by ID", description = "Retrieves a specific user by their unique ID")
+  @Operation(summary = "Get user by ID", description = "Retrieves a specific user by their unique ID", security = @SecurityRequirement(name = "bearer-jwt"))
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "User retrieved successfully", content = @Content(schema = @Schema(implementation = GetUserResponse.class))),
+      @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid JWT token"),
       @ApiResponse(responseCode = "422", description = "User not found with the specified ID")
   })
   public ResponseEntity<GetUserResponse> getUser(@PathVariable Long id) {
@@ -71,9 +73,10 @@ public class UserController {
   }
 
   @GetMapping(params = "name")
-  @Operation(summary = "Get users by name", description = "Retrieves all users matching the provided name. Supports partial name matching (case-insensitive)")
+  @Operation(summary = "Get users by name", description = "Retrieves all users matching the provided name. Supports partial name matching (case-insensitive)", security = @SecurityRequirement(name = "bearer-jwt"))
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Users retrieved successfully", content = @Content(schema = @Schema(implementation = GetUserResponse.class))),
+      @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid JWT token"),
       @ApiResponse(responseCode = "422", description = "No users found with the specified name")
   })
   public ResponseEntity<List<GetUserResponse>> getUserByName(@RequestParam String name) {
@@ -82,11 +85,12 @@ public class UserController {
   }
 
   @PatchMapping("/{id}")
-  @Operation(summary = "Update user", description = "Updates an existing user's information. Only provided fields will be updated.")
+  @Operation(summary = "Update user", description = "Updates an existing user's information. Only provided fields will be updated.", security = @SecurityRequirement(name = "bearer-jwt"))
   @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User update request with optional fields", content = @Content(schema = @Schema(implementation = UpdateUserRequest.class)))
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "User updated successfully"),
       @ApiResponse(responseCode = "400", description = "Invalid input data"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid JWT token"),
       @ApiResponse(responseCode = "422", description = "User not found or business rule violation (duplicate email/login)")
   })
   public ResponseEntity<Void> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest userRequest) {
@@ -102,11 +106,12 @@ public class UserController {
   }
 
   @PatchMapping("/{id}/password")
-  @Operation(summary = "Update user password", description = "Updates the password for a specific user. The current password must be provided for validation.")
+  @Operation(summary = "Update user password", description = "Updates the password for a specific user. The current password must be provided for validation.", security = @SecurityRequirement(name = "bearer-jwt"))
   @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Password update request with current and new password", content = @Content(schema = @Schema(implementation = UpdateUserPasswordRequest.class)))
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Password updated successfully"),
       @ApiResponse(responseCode = "400", description = "Invalid input data"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid JWT token"),
       @ApiResponse(responseCode = "422", description = "User not found or current password is incorrect")
   })
   public ResponseEntity<Void> updatePassword(@PathVariable Long id, @Valid @RequestBody UpdateUserPasswordRequest updatePasswordRequest) {
@@ -121,9 +126,10 @@ public class UserController {
   }
 
   @DeleteMapping("/{id}")
-  @Operation(summary = "Delete user", description = "Deletes a user by their ID")
+  @Operation(summary = "Delete user", description = "Deletes a user by their ID", security = @SecurityRequirement(name = "bearer-jwt"))
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "User deleted successfully"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid JWT token"),
       @ApiResponse(responseCode = "422", description = "User not found")
   })
   public ResponseEntity<Void> deleteUser(@PathVariable Long id) {

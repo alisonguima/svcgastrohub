@@ -1,13 +1,13 @@
 {
   "info": {
-    "_postman_id": "4672a8dc-8ee6-4f1c-a00d-e62052c14325",
+    "_postman_id": "72b6f782-a6a8-4298-ad0f-bf3eee2e3a56",
     "name": "GastroHub",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "11999182"
   },
   "item": [
     {
-      "name": "(1) CreateUser",
+      "name": "(0) CreateUser",
       "event": [
         {
           "listen": "test",
@@ -63,6 +63,65 @@
       "response": []
     },
     {
+      "name": "(1) Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {\r",
+              "  var loginResponse = pm.response.json();\r",
+              "  console.log(\"Token capturado: \" + loginResponse.token);\r",
+              "  console.log(\"User ID capturado: \" + loginResponse.userId);\r",
+              "  pm.environment.set(\"token\", loginResponse.token);\r",
+              "  pm.environment.set(\"userId\", loginResponse.userId);\r",
+              "}\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"login\": \"alisonguimaraes\",\r\n  \"password\": \"Gastr0@Hub\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/auth/login",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "(2) GetUser",
       "event": [
         {
@@ -79,7 +138,14 @@
       ],
       "request": {
         "auth": {
-          "type": "noauth"
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
         },
         "method": "GET",
         "header": [
@@ -121,6 +187,16 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
         "method": "PATCH",
         "header": [],
         "body": {
@@ -166,7 +242,14 @@
       ],
       "request": {
         "auth": {
-          "type": "noauth"
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
         },
         "method": "GET",
         "header": [
@@ -208,11 +291,21 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
         "method": "PATCH",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"name\": \"Alison Guimarae\",\r\n  \"email\": \"alisonguimaraes@email.com\",\r\n  \"login\": \"alisonguimaraes\",\r\n  \"userType\": \"OWNER\",\r\n  \"address\": \"Rua Fulano dos Santos, 123 - São Paulo, SP\"\r\n}\r\n",
+          "raw": "{\r\n  \"name\": \"Alison Guimarae\",\r\n  \"email\": \"alisonguimaraes@hotmail.com\",\r\n  \"login\": \"alisonguimaraes\",\r\n  \"userType\": \"CUSTOMER\",\r\n  \"address\": \"Rua Fulano dos Santos, 123 - São Paulo, SP\"\r\n}\r\n",
           "options": {
             "raw": {
               "language": "json"
@@ -252,7 +345,14 @@
       ],
       "request": {
         "auth": {
-          "type": "noauth"
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
         },
         "method": "GET",
         "header": [
@@ -314,7 +414,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"name\": \"Another User\",\r\n  \"email\": \"alisonguimaraes@email.com\",\r\n  \"login\": \"anotheruser\",\r\n  \"password\": \"Gastr0@Hub\",\r\n  \"userType\": \"CUSTOMER\",\r\n  \"address\": \"Rua Another, 456 - São Paulo, SP\"\r\n}\r\n",
+          "raw": "{\r\n  \"name\": \"Another User\",\r\n  \"email\": \"alisonguimaraes@gmail.com\",\r\n  \"login\": \"anotheruser\",\r\n  \"password\": \"Gastr0@Hub\",\r\n  \"userType\": \"CUSTOMER\",\r\n  \"address\": \"Rua Another, 456 - São Paulo, SP\"\r\n}\r\n",
           "options": {
             "raw": {
               "language": "json"
@@ -407,6 +507,16 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
         "method": "PATCH",
         "header": [],
         "body": {
@@ -453,6 +563,16 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
         "method": "PATCH",
         "header": [],
         "body": {
@@ -483,6 +603,16 @@
     {
       "name": "(11) DeleteUser",
       "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
         "method": "DELETE",
         "header": [],
         "url": {
@@ -496,6 +626,114 @@
             "v1",
             "users",
             "{{userId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(12) Login_InvalidCredentials",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Should return 422 for invalid credentials\", () => {\r",
+              "  pm.expect(pm.response.code).to.equal(422);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"login\": \"alisonguimaraes\",\r\n  \"password\": \"WrongPassword123\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/auth/login",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(13) Login_MissingFields",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Should return 400 for missing required fields\", () => {\r",
+              "  pm.expect(pm.response.code).to.equal(400);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"login\": \"alisonguimaraes\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{localhost80}}/gastrohub/api/v1/auth/login",
+          "host": [
+            "{{localhost80}}"
+          ],
+          "path": [
+            "gastrohub",
+            "api",
+            "v1",
+            "auth",
+            "login"
           ]
         }
       },

@@ -12,6 +12,7 @@ public interface UserPostgresPort {
   boolean existsByLogin(String login);
   boolean existsByEmail(String email);
   User getUserById(Long id);
+  User getUserByLogin(String login);
   List<User> getUserByName(String name);
   void deleteUser(Long id);
 
