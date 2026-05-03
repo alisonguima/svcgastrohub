@@ -333,4 +333,33 @@ class UserPostgresTest {
         assertThat(result).allMatch(user -> user.getName().contains("Alison"));
         verify(userRepository).findByNameContainingIgnoreCase("Alison");
     }
+
+    @Test
+    @DisplayName("getUserByLogin should return user when found")
+    void getUserByLogin_shouldReturnUserWhenFound() {
+
+        UserEntity userEntity = createUserEntity();
+        User expectedUser = createUser();
+        when(userRepository.findByLogin("testlogin")).thenReturn(Optional.of(userEntity));
+
+
+        User result = userPostgres.getUserByLogin("testlogin");
+
+
+        assertThat(result).usingRecursiveComparison().isEqualTo(expectedUser);
+        verify(userRepository).findByLogin("testlogin");
+    }
+
+    @Test
+    @DisplayName("getUserByLogin should throw exception when user not found")
+    void getUserByLogin_shouldThrowExceptionWhenUserNotFound() {
+
+        when(userRepository.findByLogin("nonexistent")).thenReturn(Optional.empty());
+
+
+        assertThatThrownBy(() -> userPostgres.getUserByLogin("nonexistent"))
+                .isInstanceOf(DefaultException.class)
+                .hasMessage(ApiConstants.INVALID_CREDENTIALS);
+        verify(userRepository).findByLogin("nonexistent");
+    }
 }

@@ -60,7 +60,7 @@ class AuthenticationServiceTest {
     void authenticate_WithValidCredentials_ReturnsLoginResponse() {
         when(userPostgresPort.getUserByLogin("johndoe")).thenReturn(user);
         when(passwordEncoder.matches("Password123!", encodedPassword)).thenReturn(true);
-        when(jwtTokenProvider.generateToken(1L, "johndoe", UserType.OWNER.name())).thenReturn("jwt-token-123");
+        when(jwtTokenProvider.generateToken(1L, "johndoe", UserType.CUSTOMER.name())).thenReturn("jwt-token-123");
 
         LoginResponse response = authenticationService.authenticate(loginRequest);
 

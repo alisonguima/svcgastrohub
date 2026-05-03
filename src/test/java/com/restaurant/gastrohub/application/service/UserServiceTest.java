@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
@@ -35,6 +36,9 @@ class UserServiceTest {
 
   @Mock
   private UserPostgresPort userPostgresPort;
+
+  @Mock
+  private PasswordEncoder passwordEncoder;
 
   @InjectMocks
   private UserService userService;
@@ -200,6 +204,8 @@ class UserServiceTest {
     updateUser.setNewPassword("newPassword");
 
     when(userPostgresPort.getUserById(1L)).thenReturn(existingUser);
+    when(passwordEncoder.matches("oldPassword", existingUser.getPassword())).thenReturn(true);
+    when(passwordEncoder.encode("newPassword")).thenReturn(realEncoder.encode("newPassword"));
 
     userService.updatePassword(1L, updateUser);
 
@@ -218,6 +224,7 @@ class UserServiceTest {
     updateUser.setNewPassword("newPassword");
 
     when(userPostgresPort.getUserById(1L)).thenReturn(existingUser);
+    when(passwordEncoder.matches("wrongPassword", existingUser.getPassword())).thenReturn(false);
 
     assertThatThrownBy(() -> userService.updatePassword(1L, updateUser))
         .isInstanceOf(DefaultException.class)
@@ -238,6 +245,7 @@ class UserServiceTest {
     updateUser.setNewPassword("oldPassword");
 
     when(userPostgresPort.getUserById(1L)).thenReturn(existingUser);
+    when(passwordEncoder.matches("oldPassword", existingUser.getPassword())).thenReturn(true);
 
     userService.updatePassword(1L, updateUser);
 
