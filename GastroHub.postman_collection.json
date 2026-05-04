@@ -414,7 +414,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"name\": \"Another User\",\r\n  \"email\": \"alisonguimaraes@gmail.com\",\r\n  \"login\": \"anotheruser\",\r\n  \"password\": \"Gastr0@Hub\",\r\n  \"userType\": \"CUSTOMER\",\r\n  \"address\": \"Rua Another, 456 - São Paulo, SP\"\r\n}\r\n",
+          "raw": "{\r\n  \"name\": \"Another User\",\r\n  \"email\": \"alisonguimaraes@hotmail.com\",\r\n  \"login\": \"anotheruser\",\r\n  \"password\": \"Gastr0@Hub\",\r\n  \"userType\": \"CUSTOMER\",\r\n  \"address\": \"Rua Another, 456 - São Paulo, SP\"\r\n}\r\n",
           "options": {
             "raw": {
               "language": "json"
