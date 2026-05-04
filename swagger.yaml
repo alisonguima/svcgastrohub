@@ -1,0 +1,355 @@
+openapi: 3.0.1
+info:
+  title: GastroHub API
+  description: >
+    Unified backend system for a local restaurant chain, enabling efficient user management,
+    authentication, and administrative operations in a containerized environment.
+  contact:
+    name: GastroHub Support
+    url: https://gastrohub.com
+    email: support@gastrohub.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/gastrohub
+    description: Local Development Server
+  - url: https://api.example.com/gastrohub
+    description: Production Server
+
+security:
+  - bearer-jwt: []
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate user
+      description: Authenticates a user with login credentials and returns a JWT token for subsequent requests. This endpoint is publicly accessible and does not require JWT token.
+      operationId: login
+      requestBody:
+        description: Login request with username and password
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: User authenticated successfully and JWT token generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid input data - missing or invalid required fields
+        '422':
+          description: Invalid login or password
+
+  /api/v1/users:
+    post:
+      tags:
+        - User Management
+      summary: Create a new user
+      description: Creates a new user with the provided details. The password field is required and will be encoded before storage.
+      operationId: createUser
+      requestBody:
+        description: User creation request with required fields
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+        required: true
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserResponse'
+        '400':
+          description: Invalid input data - missing or invalid required fields
+        '422':
+          description: Business rule violation - email or login already exists
+
+  /api/v1/users/{id}:
+    get:
+      tags:
+        - User Management
+      summary: Get user by ID
+      description: Retrieves a specific user by their unique ID
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUserResponse'
+        '401':
+          description: Unauthorized - missing or invalid JWT token
+        '422':
+          description: User not found with the specified ID
+      security:
+        - bearer-jwt: []
+
+    patch:
+      tags:
+        - User Management
+      summary: Update user
+      description: Updates an existing user's information. Only provided fields will be updated.
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: User update request with optional fields
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+        required: true
+      responses:
+        '204':
+          description: User updated successfully
+        '400':
+          description: Invalid input data
+        '401':
+          description: Unauthorized - missing or invalid JWT token
+        '422':
+          description: User not found or business rule violation (duplicate email/login)
+      security:
+        - bearer-jwt: []
+
+    delete:
+      tags:
+        - User Management
+      summary: Delete user
+      description: Deletes a user by their ID
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: User deleted successfully
+        '401':
+          description: Unauthorized - missing or invalid JWT token
+        '422':
+          description: User not found
+      security:
+        - bearer-jwt: []
+
+  /api/v1/users/{id}/password:
+    patch:
+      tags:
+        - User Management
+      summary: Update user password
+      description: Updates the password for a specific user. The current password must be provided for validation.
+      operationId: updatePassword
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Password update request with current and new password
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserPasswordRequest'
+        required: true
+      responses:
+        '204':
+          description: Password updated successfully
+        '400':
+          description: Invalid input data
+        '401':
+          description: Unauthorized - missing or invalid JWT token
+        '422':
+          description: User not found or current password is incorrect
+      security:
+        - bearer-jwt: []
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        login:
+          type: string
+          description: User login/username
+          example: joao.silva
+        password:
+          type: string
+          description: User password
+          example: senha123
+      required:
+        - login
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT Bearer token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type:
+          type: string
+          description: Token type
+          example: Bearer
+
+    CreateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User full name
+          example: João Silva
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: joao@example.com
+        login:
+          type: string
+          description: User login/username
+          example: joao.silva
+        password:
+          type: string
+          description: User password (will be encoded)
+          example: senha123
+        userType:
+          type: string
+          description: User type/role
+          enum:
+            - ADMIN
+            - MANAGER
+            - USER
+          example: ADMIN
+      required:
+        - name
+        - email
+        - login
+        - password
+        - userType
+
+    CreateUserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: User ID
+          example: 1
+        name:
+          type: string
+          description: User full name
+          example: João Silva
+        email:
+          type: string
+          description: User email
+          example: joao@example.com
+        login:
+          type: string
+          description: User login
+          example: joao.silva
+        userType:
+          type: string
+          description: User type
+          example: ADMIN
+
+    GetUserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: User ID
+        name:
+          type: string
+          description: User full name
+        email:
+          type: string
+          description: User email
+        login:
+          type: string
+          description: User login
+        userType:
+          type: string
+          description: User type
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User full name (optional)
+        email:
+          type: string
+          format: email
+          description: User email (optional)
+        login:
+          type: string
+          description: User login (optional)
+        userType:
+          type: string
+          description: User type (optional)
+          enum:
+            - ADMIN
+            - MANAGER
+            - USER
+
+    UpdateUserPasswordRequest:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          description: Current password for validation
+          example: senhaAtual123
+        newPassword:
+          type: string
+          description: New password
+          example: novaSenha123
+      required:
+        - currentPassword
+        - newPassword
+
+  securitySchemes:
+    bearer-jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token for authentication. Include in Authorization header as:Bearer <token>
+
+tags:
+  - name: Authentication
+    description: APIs for user authentication and JWT token management
+  - name: User Management
+    description: APIs for managing users in the GastroHub system
+
